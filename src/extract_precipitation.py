@@ -80,14 +80,18 @@ def main():
     end_date = date(2012, 12, 31)
 
     for current in daterange(start_date, end_date):
+        print current.strftime('%Y%m%d')
+
         dataset = get_dataset(current)
 
         precip = dataset.variables['amountofprecip'][:]
         precip_in = np.ma.masked_less(precip / 2540., 0.01)
 
-        basemap.plot_conus_precip(lats, lons, precip_in)
-        plt.show()
+        # Write image files from netCDF4 precipitation data
 
-        break
+        basemap.plot_conus_precip(lats, lons, precip_in)
+
+        image_fn = '../dat/precip/img/%s.png' % current.strftime('%Y%m%d')
+        plt.savefig(image_fn, dpi=150)
 
 main()
