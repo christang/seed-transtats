@@ -19,7 +19,7 @@ Airport = collections.namedtuple('Airport', 'id iata lat lng i j data')
 
 
 def daterange(start_date, end_date):
-    for n in range((end_date - start_date).days):
+    for n in range((end_date - start_date).days + 1):
         yield start_date + timedelta(n)
 
 
@@ -86,7 +86,7 @@ def main():
     start_date = date(2011, 1, 1)
     end_date = date(2011, 12, 31)
 
-    days = (end_date - start_date).days
+    days = (end_date - start_date).days + 1
 
     conus_airports = [
         Airport(
