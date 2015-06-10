@@ -103,7 +103,7 @@ def main():
     ]
 
     for i, current in enumerate(daterange(start_date, end_date)):
-        print(current.strftime('%Y%m%d'), file=sys.stderr)
+        print(current.strftime('%Y-%m-%d'), file=sys.stderr)
 
         dataset = get_dataset(current)
         precip = dataset.variables['amountofprecip'][:]
@@ -122,8 +122,11 @@ def main():
         for airport in conus_airports:
             airport.data[i] = precip[airport.i, airport.j] / 2540.
 
+    header_data = ','.join([d.strftime('%Y-%m-%d') for d in daterange(start_date, end_date)])
+    print('iata,%s' % header_data)
     for airport in conus_airports:
         airport_data = np.array_str(airport.data, max_line_width=100000, precision=2, suppress_small=True)
-        print('"%s","%s"' % (airport.iata, airport_data))
+        airport_data = ','.join(airport_data.strip('][').split())
+        print('%s,%s' % (airport.iata, airport_data))
 
 main()

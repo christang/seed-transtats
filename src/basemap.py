@@ -50,4 +50,3 @@ levels = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0,
 norm = matplotlib.colors.BoundaryNorm(levels, 15)
 
 precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors)
-
