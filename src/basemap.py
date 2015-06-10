@@ -19,7 +19,6 @@ def plot_conus():
 
 def plot_conus_precip(lats, lons, precip_in):
     m = plot_conus()
-    norm = matplotlib.colors.BoundaryNorm(levels, 15)
     cax = m.pcolormesh(lons, lats, precip_in, latlon=True, norm=norm,
                        cmap=precip_colormap)
     m.colorbar(cax)
@@ -47,6 +46,8 @@ nws_precip_colors = [
 
 levels = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0,
           6.0, 8.0, 10., 20.0]
+
+norm = matplotlib.colors.BoundaryNorm(levels, 15)
 
 precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors)
 
