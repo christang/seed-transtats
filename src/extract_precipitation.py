@@ -1,9 +1,13 @@
+from __future__ import print_function
 from datetime import timedelta, date
+import collections
 import csv
 import functools
 import matplotlib.pyplot as plt
 import netCDF4
+import os
 import numpy as np
+import sys
 import tarfile
 
 import basemap
@@ -11,8 +15,11 @@ import converter
 import pickled
 
 
+Airport = collections.namedtuple('Airport', 'id iata lat lng i j data')
+
+
 def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
+    for n in range((end_date - start_date).days):
         yield start_date + timedelta(n)
 
 
@@ -77,21 +84,46 @@ def main():
     #   291 = len([airports[a[0]]['state'] for a in agp])
 
     start_date = date(2011, 1, 1)
-    end_date = date(2012, 12, 31)
+    end_date = date(2011, 12, 31)
 
-    for current in daterange(start_date, end_date):
-        print current.strftime('%Y%m%d')
+    days = (end_date - start_date).days
+
+    conus_airports = [
+        Airport(
+            i,
+            airports[i]['iata'],
+            float(airports[i]['lat']),
+            float(airports[i]['long']),
+            airport_grid_points[i][0],
+            airport_grid_points[i][1],
+            np.zeros(days)
+        )
+        for i in xrange(len(airports))
+        if airport_grid_points[i][2] < 5
+    ]
+
+    for i, current in enumerate(daterange(start_date, end_date)):
+        print(current.strftime('%Y%m%d'), file=sys.stderr)
 
         dataset = get_dataset(current)
-
         precip = dataset.variables['amountofprecip'][:]
-        precip_in = np.ma.masked_less(precip / 2540., 0.01)
 
         # Write image files from netCDF4 precipitation data
 
-        basemap.plot_conus_precip(lats, lons, precip_in)
-
         image_fn = '../dat/precip/img/%s.png' % current.strftime('%Y%m%d')
-        plt.savefig(image_fn, dpi=150)
+        if not os.path.exists(image_fn):
+            precip_in = np.ma.masked_less(precip / 2540., 0.01)
+            basemap.plot_conus_precip(lats, lons, precip_in)
+            plt.savefig(image_fn, dpi=150)
+            plt.clf()
+
+        # Collect precipitation in inches for airport locations
+
+        for airport in conus_airports:
+            airport.data[i] = precip[airport.i, airport.j] / 2540.
+
+    for airport in conus_airports:
+        airport_data = np.array_str(airport.data, max_line_width=100000, precision=2, suppress_small=True)
+        print('"%s","%s"' % (airport.iata, airport_data))
 
 main()
