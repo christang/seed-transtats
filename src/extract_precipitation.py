@@ -10,9 +10,7 @@ import numpy as np
 import sys
 import tarfile
 
-import basemap
-import converter
-import pickled
+from lib import basemap, converter, pickled
 
 
 Airport = collections.namedtuple('Airport', 'id iata lat lng i j data')

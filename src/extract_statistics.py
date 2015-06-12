@@ -2,7 +2,7 @@ import functools
 from datetime import timedelta
 from pandas import *
 
-import pickled
+from lib import pickled
 
 
 def load_transtats(year):
