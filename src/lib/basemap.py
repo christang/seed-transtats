@@ -3,7 +3,7 @@ from mpl_toolkits.basemap import Basemap
 
 
 def plot_conus():
-    """ Create a plot of the Continential US. """
+    """ Create a plot of the Continental US. """
     m = Basemap(
         llcrnrlon=-130.0,
         llcrnrlat=20.0,
