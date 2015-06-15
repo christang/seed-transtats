@@ -1,4 +1,3 @@
-from datetime import timedelta
 from pandas import *
 
 
@@ -18,56 +17,16 @@ def load_transtats(year):
         "CarrierDelay","WeatherDelay","NASDelay","SecurityDelay","LateAircraftDelay",
     )
 
-    return concat(read_csv(csv_fn, na_values='', usecols=usecols) for csv_fn in csv_fns)
+    return concat(read_csv(csv_fn, na_values='', usecols=usecols, dtype={'CancellationCode': Categorical}, parse_dates=['FlightDate']) for csv_fn in csv_fns)
 
 
 def load_precips(year):
     csv_fn = '../dat/seed/airports_precip_%d.csv' % (year, )
 
+    return read_csv(csv_fn, parse_dates=['date'])
+
+
+def load_airports():
+    csv_fn = '../dat/seed/airports.csv'
+
     return read_csv(csv_fn)
-
-
-def join_weather(dataset, precips):
-    dataset['Weather0'] = np.zeros(len(dataset))
-    dataset['Weather1'] = np.zeros(len(dataset))
-
-    levels = dataset.index.levels
-    labels = zip(*dataset.index.labels)
-    for i, j in labels:
-        date = levels[0][i]
-        iata = levels[1][j]
-        yest = (to_datetime(date, format="%Y-%m-%d") - timedelta(1)).strftime("%Y-%m-%d")
-        try:
-            weather = precips.get_group(iata)[date]
-            dataset['Weather0'][date][iata] = weather
-        except KeyError:
-            dataset['Weather0'][date][iata] = float('nan')
-
-        try:
-            weather = precips.get_group(iata)[yest]
-            dataset['Weather1'][date][iata] = weather
-        except KeyError:
-            dataset['Weather1'][date][iata] = float('nan')
-
-
-def load_dataset(year):
-    transtats = load_transtats(year)
-
-    dep_per_date_airport = transtats.groupby(['FlightDate','Origin'])[
-        "DepDelay","DepDel15","TaxiOut","TaxiIn","ArrDelay","ArrDel15","Cancelled","Diverted",
-        "CarrierDelay","WeatherDelay","NASDelay","SecurityDelay","LateAircraftDelay",
-    ].mean()
-    arr_per_date_airport = transtats.groupby(['FlightDate','Dest'])[
-        "DepDelay","DepDel15","TaxiOut","TaxiIn","ArrDelay","ArrDel15","Cancelled","Diverted",
-        "CarrierDelay","WeatherDelay","NASDelay","SecurityDelay","LateAircraftDelay",
-    ].mean()
-
-    precips = load_precips(year).groupby(['iata'])
-
-    # The following can probably be accomplished more efficiently by reshaping the
-    # precipitation data and table joining with the above data sets
-
-    join_weather(dep_per_date_airport, precips)
-    join_weather(arr_per_date_airport, precips)
-
-    return transtats, dep_per_date_airport, arr_per_date_airport
